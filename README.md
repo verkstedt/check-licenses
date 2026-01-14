@@ -3,6 +3,18 @@
 
 Check licenses of your project dependencies.
 
+## Links
+
+_TODO Add links to relevant resources_
+
+<!--
+- [🗪 Chat](https://app.slack.com/TODO)
+- [🗒 Tasks](TODO)
+- [👆 Client repository](https://github.com/verkstedt.com/TODO)
+- [📚 Docs](TODO)
+- [📁 Files](TODO)
+-->
+
 ## Differences to [license-checker-evergreen]
 
 This is a lightweight wrapper around [license-checker-evergreen] with
@@ -65,3 +77,8 @@ to see some debug logs.
 ---
 
 [license-checker-evergreen]: https://www.npmjs.com/package/license-checker-evergreen
+
+## License
+
+[ISC](./LICENSE)
+
