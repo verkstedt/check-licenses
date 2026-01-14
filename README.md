@@ -5,15 +5,13 @@ Check licenses of your project dependencies.
 
 ## Links
 
-_TODO Add links to relevant resources_
+<details>
+<summary>verkstedt internal</summary>
 
-<!--
-- [🗪 Chat](https://app.slack.com/TODO)
-- [🗒 Tasks](TODO)
-- [👆 Client repository](https://github.com/verkstedt.com/TODO)
-- [📚 Docs](TODO)
-- [📁 Files](TODO)
--->
+- [🗪 Chat](https://app.slack.com/client/T6HMM3NG2/C07JVGJM10S)
+- [🗒 Tasks](https://verkstedt.atlassian.net/jira/software/projects/VIP/boards/12) (shared with other projects)
+
+</details>
 
 ## Differences to [license-checker-evergreen]
 
