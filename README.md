@@ -1,5 +1,4 @@
-@verkstedt/check-licenses
-=========================
+# @verkstedt/check-licenses
 
 Check licenses of your project dependencies.
 
@@ -46,7 +45,7 @@ npx @verkstedt/check-licenses --help
 ### Programmatic
 
 ```mjs
-import { checkLicenses } from '@verkstedt/check-licenses';
+import { checkLicenses } from '@verkstedt/check-licenses'
 
 const results = checkLicenses({
   start: 'PATH_TO_YOUR_PROJECT',
@@ -57,7 +56,10 @@ const results = checkLicenses({
   },
 })
 
-console.log('Violations:', results.filter(result => !result.ok));
+console.log(
+  'Violations:',
+  results.filter((result) => !result.ok)
+)
 ```
 
 ## Testing
@@ -81,4 +83,3 @@ to see some debug logs.
 ## License
 
 [ISC](./LICENSE)
-

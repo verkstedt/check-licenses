@@ -12,22 +12,22 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm"
-    directory: "/"
+  - package-ecosystem: 'npm'
+    directory: '/'
     schedule:
-      interval: "quarterly"
-      time: "12:00"
-      timezone: "Europe/Berlin"
+      interval: 'quarterly'
+      time: '12:00'
+      timezone: 'Europe/Berlin'
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
 
-  - package-ecosystem: "github-actions"
-    directory: "/"
+  - package-ecosystem: 'github-actions'
+    directory: '/'
     schedule:
-      interval: "quarterly"
-      time: "12:00"
-      timezone: "Europe/Berlin"
+      interval: 'quarterly'
+      time: '12:00'
+      timezone: 'Europe/Berlin'
     open-pull-requests-limit: 5
     cooldown:
       default-days: 7
