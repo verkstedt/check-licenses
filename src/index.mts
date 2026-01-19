@@ -1,6 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import { writeFile, stat } from 'node:fs/promises'
-import { unlinkSync } from 'node:fs'
+import { unlinkSync, type Stats } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
@@ -126,18 +126,17 @@ function parseJsonValue<Return>(value: string): Return {
 async function validateNodeModulesExistence(dir: string): Promise<void> {
   const nodeModulesDir = join(dir, 'node_modules')
   // check if exists and is a directory
+  let dirStat: Stats
   try {
-    const dirStat = await stat(nodeModulesDir)
-    if (!dirStat.isDirectory()) {
-      throw new Error(
-        `File '${nodeModulesDir}' exists, but is not a directory.`
-      )
-    }
+    dirStat = await stat(nodeModulesDir)
   } catch (cause) {
     throw new Error(
       `Directory '${nodeModulesDir}' does not exist. Make sure to run 'npm install' before running the license checker.`,
       { cause }
     )
+  }
+  if (!dirStat.isDirectory()) {
+    throw new Error(`File '${nodeModulesDir}' exists, but is not a directory.`)
   }
 }
 
