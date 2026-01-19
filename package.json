@@ -5,6 +5,7 @@
   "license": "ISC",
   "type": "module",
   "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
   "bin": "dist/cli.mjs",
   "files": [
     "dist"

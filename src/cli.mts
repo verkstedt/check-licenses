@@ -1,4 +1,4 @@
-#!/usr/bin/env -S node --no-deprecation=DEP0174
+#!/usr/bin/env -S node --enable-source-maps --no-deprecation=DEP0174
 
 import {
   debug,
