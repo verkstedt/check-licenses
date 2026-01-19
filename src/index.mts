@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
-import { writeFileSync, unlinkSync } from "node:fs";
+import { writeFile, stat } from "node:fs/promises";
+import { unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { promisify } from "node:util";
@@ -41,13 +42,15 @@ export type Clarifications = Record<
  * license-checker only accepts clarifications via a file, so we create
  * a temporary file for it to read and delete it on process exit
  */
-function createTempClarificationsFile(clarifications: Clarifications): string {
+async function createTempClarificationsFile(
+  clarifications: Clarifications,
+): Promise<string> {
   const clarificationsJson = JSON.stringify(clarifications);
   const clarificationsFile = join(
     tmpdir(),
     `clarifications-${randomBytes(16).toString("hex")}.json`,
   );
-  writeFileSync(clarificationsFile, clarificationsJson, {
+  await writeFile(clarificationsFile, clarificationsJson, {
     encoding: "utf8",
   });
 
@@ -121,6 +124,24 @@ function parseJsonValue<Return>(value: string): Return {
   return parseJsonC(value) as Return;
 }
 
+async function validateNodeModulesExistence(dir: string): Promise<void> {
+  const nodeModulesDir = join(dir, "node_modules");
+  // check if exists and is a directory
+  try {
+    const dirStat = await stat(nodeModulesDir);
+    if (!dirStat.isDirectory()) {
+      throw new Error(
+        `File '${nodeModulesDir}' exists, but is not a directory.`,
+      );
+    }
+  } catch (cause) {
+    throw new Error(
+      `Directory '${nodeModulesDir}' does not exist. Make sure to run 'npm install' before running the license checker.`,
+      { cause },
+    );
+  }
+}
+
 /**
  * Check if licenses of dependencies ok
  */
@@ -145,14 +166,15 @@ export default async function checkLicenses({
       `The following allowed licenses are not valid SPDX license identifiers: ${invalidLicenses.join(", ")}`,
     );
   }
-  log('Parsed allowed licenses: %O', allowedLicenses);
+  log("Parsed allowed licenses: %O", allowedLicenses);
 
   const exclude = Array.isArray(excludeParam)
     ? excludeParam
     : parseListValue(excludeParam);
 
   const invalidExcludes = exclude.filter(
-    (exclude) => exclude.includes('*') && exclude.indexOf('*') !== exclude.length - 1,
+    (exclude) =>
+      exclude.includes("*") && exclude.indexOf("*") !== exclude.length - 1,
   );
   if (invalidExcludes.length > 0) {
     throw new Error(
@@ -161,13 +183,18 @@ export default async function checkLicenses({
       )}`,
     );
   }
-  log('Parsed exclude: %O', exclude);
+  log("Parsed exclude: %O", exclude);
 
-  const clarifications: Clarifications = typeof clarificationsParam === "string"
-    ? parseJsonValue<Clarifications>(clarificationsParam)
-    : clarificationsParam;
-  log('Parsed clarifications: %O', clarifications);
-  const clarificationsFile = createTempClarificationsFile(clarifications);
+  const clarifications: Clarifications =
+    typeof clarificationsParam === "string"
+      ? parseJsonValue<Clarifications>(clarificationsParam)
+      : clarificationsParam;
+  log("Parsed clarifications: %O", clarifications);
+  const clarificationsFile = await createTempClarificationsFile(clarifications);
+  log("Wrote clarifications to temporary file: %s", clarificationsFile);
+
+  await validateNodeModulesExistence(start);
+  log("node_modules directory exists in %s", start);
 
   const packages = await licenseChecker({
     start,
@@ -187,6 +214,8 @@ export default async function checkLicenses({
       ok: checkLicense(allowedLicenses, info),
     }),
   );
+
+  log("License check result: %O", result);
 
   return result;
 }

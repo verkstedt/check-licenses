@@ -33,6 +33,8 @@ following notable changes:
 - Combine `excludePackages` and `onlyAllowPackages` into a single
   `excludes` that allows `*` wildcard at the end of the names.
 
+- Check if `node_modules` exists
+
 ## Usage
 
 ### Command line

@@ -227,8 +227,6 @@ async function main() {
     log,
   });
 
-  log("License check result: %O", result);
-
   const violations = result.filter((pkg) => pkg.ok !== true);
 
   if (violations.length === 0) {
