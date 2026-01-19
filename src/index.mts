@@ -5,7 +5,6 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
-import { parse as parseJsonC } from 'jsonc-parser'
 import { initFast } from 'license-checker-evergreen'
 import satisfies from 'spdx-satisfies'
 import spdxLicenseIds from 'spdx-license-ids' with { type: 'json' }
@@ -98,7 +97,7 @@ interface CheckLicensesOptions {
    */
   exclude: string | Array<string>
   /**
-   * SPXD license specifiers
+   * SPDX license specifiers
    * @link https://www.npmjs.com/package/spdx-satisfies
    */
   allowedLicenses: string | Array<string>
@@ -121,7 +120,7 @@ function parseListValue(value: string): Array<string> {
 }
 
 function parseJsonValue<Return>(value: string): Return {
-  return parseJsonC(value) as Return
+  return JSON.parse(value) as Return
 }
 
 async function validateNodeModulesExistence(dir: string): Promise<void> {

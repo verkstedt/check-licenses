@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+#!/usr/bin/env -S node --no-deprecation=DEP0174
 
 import {
   debug,
@@ -33,21 +33,6 @@ const ansi =
         reset: '',
       }
 
-// Suppress “DeprecationWarning: Calling promisify on a function that returns a Promise is likely a mistake.”
-const originalEmit = process.emit
-// @ts-ignore
-process.emit = function (event, error, ...argv) {
-  if (
-    !(
-      event === 'warning' &&
-      error?.name === 'DeprecationWarning' &&
-      (error as any).code === 'DEP0174'
-    )
-  ) {
-    originalEmit.call(this, event, error, ...argv)
-  }
-}
-
 const cliOptions = Object.freeze({
   ['exclude']: {
     short: 'x',
@@ -68,7 +53,7 @@ const cliOptions = Object.freeze({
     type: 'string',
     default: '{}',
     description:
-      'JSONC object with license clarifications for packages with broken license metadata <https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications>',
+      'JSON object with license clarifications for packages with broken license metadata <https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications>',
   },
   ['help']: {
     short: 'h',
@@ -178,34 +163,18 @@ function parseCliArgs(): {
   const start = positionals[0]
   log(`Starting path: %s`, start)
 
-  if (typeof values['exclude'] !== 'string') {
-    process.stderr.write(
-      `${ansi.red}ERROR: Invalid --exclude value${ansi.reset}\n\n`
-    )
-    printHelp()
-    process.exit(64) // EX_USAGE
-  }
-  const exclude = values.exclude
+  // parseArgs types currently doesn’t recognise `type` and types
+  // everything as `string | boolean` (it only recognises `multiple`, so
+  // it doesn’t type as `string | boolean | string[] | boolean[]`).
+  // So we need to cast values as strings.
+
+  const exclude = values.exclude as string
   log(`Excludes: %s`, exclude)
 
-  if (typeof values['allowed-licenses'] !== 'string') {
-    process.stderr.write(
-      `${ansi.red}ERROR: Invalid --allowed-licenses value${ansi.reset}\n\n`
-    )
-    printHelp()
-    process.exit(64) // EX_USAGE
-  }
-  const allowedLicenses = values['allowed-licenses']
+  const allowedLicenses = values['allowed-licenses'] as string
   log(`Allowed licenses: %s`, allowedLicenses)
 
-  if (typeof values['clarifications'] !== 'string') {
-    process.stderr.write(
-      `${ansi.red}ERROR: Invalid --clarifications value${ansi.reset}\n\n`
-    )
-    printHelp()
-    process.exit(64) // EX_USAGE
-  }
-  const clarifications = values.clarifications
+  const clarifications = values.clarifications as string
   log(`Clarifications: %s`, clarifications)
 
   return {

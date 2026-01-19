@@ -26,8 +26,7 @@ following notable changes:
 - Use newline as delimiter between items of arguments and allow comment
   lines.
 
-- Read clarifications from an argument, instead of a file and allow
-  JSONC comments there.
+- Read clarifications from an argument, instead of a file.
 
 - Combine `excludePackages` and `onlyAllowPackages` into a single
   `excludes` that allows `*` wildcard at the end of the names.
