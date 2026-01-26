@@ -52,7 +52,7 @@ const licenseChecker = promisify<LicenceCheckerArgs, LicenceCheckerResult>(
 export type Clarifications = Record<
   string,
   {
-    licenses?: string
+    licenses: string
     licenseFile?: string
   }
 >
@@ -147,19 +147,26 @@ function parseJsonValue(value: string) {
   return JSON.parse(value) as unknown
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return (
+    value != null &&
+    typeof value === 'object' &&
+    Object.getPrototypeOf(value) === Object.prototype
+  )
+}
+
 function isClarifications(value: unknown): value is Clarifications {
-  if (
-    value == null ||
-    typeof value !== 'object' ||
-    Object.getPrototypeOf(value) !== Object.prototype
-  ) {
+  if (!isPlainObject(value)) {
     return false
   } else {
-    return Object.values(value).every((clarification) =>
-      ['licenses', 'licenseFile'].every(
-        (prop) =>
-          !(prop in clarification) || typeof clarification[prop] === 'string'
-      )
+    return Object.values(value).every(
+      (clarification) =>
+        isPlainObject(clarification) &&
+        'licenses' in clarification &&
+        ['licenses', 'licenseFile'].every(
+          (prop) =>
+            !(prop in clarification) || typeof clarification[prop] === 'string'
+        )
     )
   }
 }
@@ -203,7 +210,7 @@ export function parseClarifications(
     typeof value !== 'string' ? value : parseJsonValue(value) || {}
   if (!isClarifications(parsedValue)) {
     throw new Error(
-      `Clarifications must be a JSON object mapping package names to clarification objects (with optional 'licenses' and 'licenseFile' properties).`
+      `Clarifications must be a JSON object mapping package names to clarification objects with 'licenses' (note it’s plural) and optional 'licenseFile' properties.`
     )
   }
   return parsedValue

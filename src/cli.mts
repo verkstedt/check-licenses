@@ -72,7 +72,7 @@ const cliOptions = Object.freeze({
     multiple: true,
     default: ['{}'],
     description:
-      'JSON object with license clarifications for packages with broken license metadata <https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications>',
+      "JSON object with license clarifications for packages with broken license metadata. Must include at least 'licenses' <https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications>",
   },
   ['help']: {
     short: 'h',
