@@ -34,7 +34,7 @@ const ansi =
       }
 
 const cliOptions = Object.freeze({
-  ['exclude']: {
+  ['exclude-packages']: {
     short: 'x',
     type: 'string',
     multiple: true,
@@ -42,7 +42,7 @@ const cliOptions = Object.freeze({
     description:
       "Newline-separated list of package names to exclude from the check. Use '*' at the end of the name to match by prefix. Lines starting with '#' are treated as comments and ignored.",
   },
-  ['allowed-licenses']: {
+  ['allow-licenses']: {
     short: 'l',
     type: 'string',
     multiple: true,
@@ -177,13 +177,13 @@ function parseCliArgs(): {
   // it doesn’t type as `string | boolean | string[] | boolean[]`).
   // So we need to cast values as strings.
 
-  const excludeArray = values.exclude as Array<string>
+  const excludeArray = values['exclude-packages'] as Array<string>
   log(`Excludes: %s`, excludeArray)
   const exclude = excludeArray.join('\n')
 
-  const allowedLicensesArray = values['allowed-licenses'] as Array<string>
-  log(`Allowed licenses: %s`, allowedLicensesArray)
-  const allowedLicenses = allowedLicensesArray.join('\n')
+  const allowLicensesArray = values['allow-licenses'] as Array<string>
+  log(`Allow licenses: %s`, allowLicensesArray)
+  const allowedLicenses = allowLicensesArray.join('\n')
 
   const clarificationsArray = values.clarifications as Array<string>
   log(`Clarifications: %s`, clarificationsArray)

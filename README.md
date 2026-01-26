@@ -70,10 +70,10 @@ things locally, you can save vars from CI in a `.env.test` file and run:
 cd PATH_TO_CHECK_LICENSES_REPO
 npx dotenv-cli -e .env.test -- sh -c '\
   npx . \
-    --allowed-licenses="$ALLOWED_LICENSES_GLOBAL" \
-    --allowed-licenses="$ALLOWED_LICENSES" \
-    --exclude="$EXCLUDED_PACKAGES_GLOBAL" \
-    --exclude="$EXCLUDED_PACKAGES" \
+    --allow-licenses="$ALLOW_LICENSES_GLOBAL" \
+    --allow-licenses="$ALLOW_LICENSES" \
+    --exclude-packages="$EXCLUDE_PACKAGES_GLOBAL" \
+    --exclude-packages="$EXCLUDE_PACKAGES" \
     --clarifications="$CLARIFICATIONS_GLOBAL" \
     --clarifications="$CLARIFICATIONS" \
     PATH_TO_YOUR_PROJECT \
