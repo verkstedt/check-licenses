@@ -1,16 +1,13 @@
 import { randomBytes } from 'node:crypto'
-import { writeFile, stat } from 'node:fs/promises'
 import { unlinkSync, type Stats } from 'node:fs'
+import { stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { promisify } from 'node:util'
 
 import { initFast } from 'license-checker-evergreen'
-import satisfies from 'spdx-satisfies'
 import spdxLicenseIds from 'spdx-license-ids' with { type: 'json' }
-
-// eslint-disable-next-line @typescript-eslint/no-misused-promises -- initFast already returna s promise, but it doesn’t resolve to anything and it returns data via a callback
-const licenseChecker = promisify(initFast)
+import satisfies from 'spdx-satisfies'
 
 const customFormat = Object.freeze({
   licenses: '' as string,
@@ -28,6 +25,27 @@ const customFormat = Object.freeze({
 type PackageInfo = {
   [key in keyof typeof customFormat]: (typeof customFormat)[key]
 }
+
+// FIXME Update if license-checker-evergreen adds proper types
+interface LicenceCheckerArgs {
+  start: string
+  relativeModulePath: boolean
+  relativeLicensePath: boolean
+  customFormat: Record<string, unknown>
+  clarificationsFile: string
+  excludePackages: Array<string>
+  excludePackagesStartingWith: Array<string>
+}
+type LicenceCheckerResult = Array<PackageInfo>
+// We use these two later with `satisfies` to make sure we get some errors when
+// licence-checker-evergreen introduces proper typings and they don’t match ours
+type LicenceCheckerRealArgs = Parameters<typeof initFast>[0]
+type LicenceCheckerRealResult = Parameters<Parameters<typeof initFast>[1]>[1]
+
+const licenseChecker = promisify<LicenceCheckerArgs, LicenceCheckerResult>(
+  // eslint-disable-next-line @typescript-eslint/no-misused-promises -- initFast already returna s promise, but it doesn’t resolve to anything and it returns data via a callback
+  initFast
+)
 
 export type Clarifications = Record<
   string,
@@ -110,7 +128,9 @@ interface CheckLicensesOptions {
    * Debug logger function
    * @see import('node:util').debug
    */
-  log?: ((message: string, ...args: Array<any>) => void) | (() => void)
+  log?:
+    | ((message: string, ...args: Parameters<Console['log']>) => void)
+    | (() => void)
 }
 
 function parseListValue(value: string): Array<string> {
@@ -119,8 +139,8 @@ function parseListValue(value: string): Array<string> {
     .filter((line) => !line.trimStart().startsWith('#') && line.trim() !== '')
 }
 
-function parseJsonValue<Return>(value: string): Return {
-  return JSON.parse(value) as Return
+function parseJsonValue(value: string) {
+  return JSON.parse(value) as unknown
 }
 
 async function validateNodeModulesExistence(dir: string): Promise<void> {
@@ -148,7 +168,7 @@ export default async function checkLicenses({
   allowedLicenses: allowedLicensesParam,
   exclude: excludeParam,
   clarifications: clarificationsParam,
-  log = () => {},
+  log = () => undefined,
 }: CheckLicensesOptions): Promise<Array<PackageInfo>> {
   const allowedLicenses = Array.isArray(allowedLicensesParam)
     ? allowedLicensesParam
@@ -171,8 +191,7 @@ export default async function checkLicenses({
     : parseListValue(excludeParam)
 
   const invalidExcludes = exclude.filter(
-    (exclude) =>
-      exclude.includes('*') && exclude.indexOf('*') !== exclude.length - 1
+    (excl) => excl.includes('*') && excl.indexOf('*') !== excl.length - 1
   )
   if (invalidExcludes.length > 0) {
     throw new Error(
@@ -185,7 +204,7 @@ export default async function checkLicenses({
 
   const clarifications: Clarifications =
     typeof clarificationsParam === 'string'
-      ? parseJsonValue<Clarifications>(clarificationsParam)
+      ? (parseJsonValue(clarificationsParam) as Clarifications)
       : clarificationsParam
   log('Parsed clarifications: %O', clarifications)
   const clarificationsFile = await createTempClarificationsFile(clarifications)
@@ -194,7 +213,7 @@ export default async function checkLicenses({
   await validateNodeModulesExistence(start)
   log('node_modules directory exists in %s', start)
 
-  const packages = await licenseChecker({
+  const packages = (await licenseChecker({
     start,
     relativeModulePath: true,
     relativeLicensePath: true,
@@ -204,7 +223,7 @@ export default async function checkLicenses({
     excludePackagesStartingWith: exclude
       .filter((pkg) => pkg.endsWith('*'))
       .map((pkg) => pkg.slice(0, -1)),
-  })
+  } satisfies LicenceCheckerRealArgs)) satisfies LicenceCheckerRealResult
 
   const result: Array<PackageInfo> = Object.values<PackageInfo>(packages).map(
     (info) => ({
