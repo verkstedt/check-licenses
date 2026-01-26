@@ -9,7 +9,7 @@ import {
 
 import wordWrap from 'word-wrap'
 
-import checkLicenses from './index.mjs'
+import checkLicenses, { Clarifications, parseClarifications } from './index.mjs'
 
 const PKG_NAME = '@verkstedt/check-licenses'
 
@@ -37,21 +37,24 @@ const cliOptions = Object.freeze({
   ['exclude']: {
     short: 'x',
     type: 'string',
-    default: '',
+    multiple: true,
+    default: [],
     description:
       "Newline-separated list of package names or patterns to exclude from the check. Use '*' at the end of the name to match by prefix. Lines starting with '#' are treated as comments and ignored.",
   },
   ['allowed-licenses']: {
     short: 'l',
     type: 'string',
-    default: '',
+    multiple: true,
+    default: [],
     description:
       "Newline-separated list of allowed SPDX license identifiers <https://spdx.org/licenses/>. You can use '+' after a version to also allow future versions. Lines starting with '#' are treated as comments and ignored.",
   },
   ['clarifications']: {
     short: 'c',
     type: 'string',
-    default: '{}',
+    multiple: true,
+    default: ['{}'],
     description:
       'JSON object with license clarifications for packages with broken license metadata <https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications>',
   },
@@ -94,10 +97,16 @@ function printHelp(): void {
             '      ',
             [
               option.description,
-              ` ${ansi.dim}[`,
+              '\n',
+              ansi.dim,
               option.type,
-              'default' in option ? `, default: ${option.default}` : '',
-              `]${ansi.reset}`,
+              'multiple' in option && option.multiple
+                ? ', can be specified multiple times'
+                : '',
+              'default' in option
+                ? `, default: ${JSON.stringify(option.default)}`
+                : '',
+              ansi.reset,
             ].join('')
           ),
         ].join('\n')
@@ -115,7 +124,7 @@ function parseCliArgs(): {
   start: string
   exclude: string
   allowedLicenses: string
-  clarifications: string
+  clarifications: Clarifications
 } {
   let parseArgsResult
   try {
@@ -168,14 +177,24 @@ function parseCliArgs(): {
   // it doesn’t type as `string | boolean | string[] | boolean[]`).
   // So we need to cast values as strings.
 
-  const exclude = values.exclude as string
-  log(`Excludes: %s`, exclude)
+  const excludeArray = values.exclude as Array<string>
+  log(`Excludes: %s`, excludeArray)
+  const exclude = excludeArray.join('\n')
 
-  const allowedLicenses = values['allowed-licenses'] as string
-  log(`Allowed licenses: %s`, allowedLicenses)
+  const allowedLicensesArray = values['allowed-licenses'] as Array<string>
+  log(`Allowed licenses: %s`, allowedLicensesArray)
+  const allowedLicenses = allowedLicensesArray.join('\n')
 
-  const clarifications = values.clarifications as string
-  log(`Clarifications: %s`, clarifications)
+  const clarificationsArray = values.clarifications as Array<string>
+  log(`Clarifications: %s`, clarificationsArray)
+  const clarifications = clarificationsArray.reduce((carry, itemString) => {
+    const item = parseClarifications(itemString)
+    return {
+      ...carry,
+      ...item,
+    }
+  }, {})
+  log(`Clarifications (merged): %s`, clarifications)
 
   return {
     start,

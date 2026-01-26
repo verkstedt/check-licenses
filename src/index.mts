@@ -143,6 +143,36 @@ function parseJsonValue(value: string) {
   return JSON.parse(value) as unknown
 }
 
+function isClarifications(value: unknown): value is Clarifications {
+  if (
+    value == null ||
+    typeof value !== 'object' ||
+    Object.getPrototypeOf(value) !== Object.prototype
+  ) {
+    return false
+  } else {
+    return Object.values(value).every((clarification) =>
+      ['licenses', 'licenseFile'].every(
+        (prop) =>
+          !(prop in clarification) || typeof clarification[prop] === 'string'
+      )
+    )
+  }
+}
+
+export function parseClarifications(
+  value: string | Clarifications
+): Clarifications {
+  const parsedValue =
+    typeof value !== 'string' ? value : parseJsonValue(value) || {}
+  if (!isClarifications(parsedValue)) {
+    throw new Error(
+      `Clarifications must be a JSON object mapping package names to clarification objects (with optional 'licenses' and 'licenseFile' properties).`
+    )
+  }
+  return parsedValue
+}
+
 async function validateNodeModulesExistence(dir: string): Promise<void> {
   const nodeModulesDir = join(dir, 'node_modules')
   // check if exists and is a directory
@@ -202,10 +232,7 @@ export default async function checkLicenses({
   }
   log('Parsed exclude: %O', exclude)
 
-  const clarifications: Clarifications =
-    typeof clarificationsParam === 'string'
-      ? (parseJsonValue(clarificationsParam) as Clarifications)
-      : clarificationsParam
+  const clarifications = parseClarifications(clarificationsParam)
   log('Parsed clarifications: %O', clarifications)
   const clarificationsFile = await createTempClarificationsFile(clarifications)
   log('Wrote clarifications to temporary file: %s', clarificationsFile)

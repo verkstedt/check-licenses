@@ -67,7 +67,17 @@ This script is mainly indented to be used in CI pipelines. To test
 things locally, you can save vars from CI in a `.env.test` file and run:
 
 ```sh
-npx dotenv -e .env.test -- sh -c 'npx @verkstedt/check-licenses -l "$ALLOWED_LICENSES" -e "$EXCLUDED_PACKAGES" -c "$CLARIFICATIONS" PATH_TO_YOUR_PROJECT'
+cd PATH_TO_CHECK_LICENSES_REPO
+npx dotenv-cli -e .env.test -- sh -c '\
+  npx . \
+    --allowed-licenses="$ALLOWED_LICENSES_GLOBAL" \
+    --allowed-licenses="$ALLOWED_LICENSES" \
+    --exclude="$EXCLUDED_PACKAGES_GLOBAL" \
+    --exclude="$EXCLUDED_PACKAGES" \
+    --clarifications="$CLARIFICATIONS_GLOBAL" \
+    --clarifications="$CLARIFICATIONS" \
+    PATH_TO_YOUR_PROJECT \
+  '
 ```
 
 ## Debugging
