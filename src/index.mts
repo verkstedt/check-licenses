@@ -35,6 +35,8 @@ interface LicenceCheckerArgs {
   clarificationsFile: string
   excludePackages: Array<string>
   excludePackagesStartingWith: Array<string>
+  production?: boolean
+  development?: boolean
 }
 type LicenceCheckerResult = Array<PackageInfo>
 // We use these two later with `satisfies` to make sure we get some errors when
@@ -113,17 +115,19 @@ interface CheckLicensesOptions {
    * Names of packages.
    * Can include '*' wildcard at the end
    */
-  exclude: string | Array<string>
+  exclude?: string | Array<string>
+  excludeDev?: string | Array<string>
   /**
    * SPDX license specifiers
    * @link https://www.npmjs.com/package/spdx-satisfies
    */
-  allowedLicenses: string | Array<string>
+  allowedLicenses?: string | Array<string>
+  allowedLicensesDev?: string | Array<string>
   /**
    * Clarifications for packages with broken license metadata
    * @link https://github.com/greenstevester/license-checker-evergreen/blob/main/docs/advanced-features.md#license-clarifications
    */
-  clarifications: string | Clarifications
+  clarifications?: string | Clarifications
   /**
    * Debug logger function
    * @see import('node:util').debug
@@ -160,6 +164,38 @@ function isClarifications(value: unknown): value is Clarifications {
   }
 }
 
+function parseLicenses(value: string | Array<string>): Array<string> {
+  const licenses = Array.isArray(value) ? value : parseListValue(value)
+  const invalidLicenses = licenses.filter((licenseSpec) => {
+    const licenseId = licenseSpec.endsWith('+')
+      ? licenseSpec.slice(0, -1)
+      : licenseSpec
+    return !spdxLicenseIds.includes(licenseId)
+  })
+  if (invalidLicenses.length > 0) {
+    throw new Error(
+      `The following allowed licenses are not valid SPDX license identifiers: ${invalidLicenses.join(', ')}`
+    )
+  }
+  return licenses
+}
+
+function parseExclude(value: string | Array<string>): Array<string> {
+  const exclude = Array.isArray(value) ? value : parseListValue(value)
+
+  const invalidExcludes = exclude.filter(
+    (excl) => excl.includes('*') && excl.indexOf('*') !== excl.length - 1
+  )
+  if (invalidExcludes.length > 0) {
+    throw new Error(
+      `The following exclude are invalid, wildcards are only supported at the end of the string: ${invalidExcludes.join(
+        ', '
+      )}`
+    )
+  }
+  return exclude
+}
+
 export function parseClarifications(
   value: string | Clarifications
 ): Clarifications {
@@ -190,47 +226,60 @@ async function validateNodeModulesExistence(dir: string): Promise<void> {
   }
 }
 
+interface CollectResultsOptions extends Omit<
+  LicenceCheckerArgs,
+  'excludePackages' | 'excludePackagesStartingWith'
+> {
+  allowedLicenses: Array<string>
+  exclude: Array<string>
+}
+
+async function collectResults({
+  allowedLicenses,
+  exclude,
+  ...args
+}: CollectResultsOptions): Promise<Array<PackageInfo>> {
+  const packagesProd = (await licenseChecker({
+    ...args,
+    excludePackages: exclude.filter((pkg) => !pkg.endsWith('*')),
+    excludePackagesStartingWith: exclude
+      .filter((pkg) => pkg.endsWith('*'))
+      .map((pkg) => pkg.slice(0, -1)),
+  })) satisfies LicenceCheckerRealResult
+
+  const results: Array<PackageInfo> = Object.values<PackageInfo>(
+    packagesProd
+  ).map((info) => ({
+    ...info,
+    ok: checkLicense(allowedLicenses, info),
+  }))
+
+  return results
+}
+
 /**
  * Check if licenses of dependencies ok
  */
 export default async function checkLicenses({
   start,
-  allowedLicenses: allowedLicensesParam,
-  exclude: excludeParam,
-  clarifications: clarificationsParam,
+  allowedLicenses: allowedLicensesParam = [],
+  allowedLicensesDev: allowedLicensesDevParam = [],
+  exclude: excludeParam = [],
+  excludeDev: excludeDevParam = [],
+  clarifications: clarificationsParam = {},
   log = () => undefined,
 }: CheckLicensesOptions): Promise<Array<PackageInfo>> {
-  const allowedLicenses = Array.isArray(allowedLicensesParam)
-    ? allowedLicensesParam
-    : parseListValue(allowedLicensesParam)
-  const invalidLicenses = allowedLicenses.filter((licenseSpec) => {
-    const licenseId = licenseSpec.endsWith('+')
-      ? licenseSpec.slice(0, -1)
-      : licenseSpec
-    return !spdxLicenseIds.includes(licenseId)
-  })
-  if (invalidLicenses.length > 0) {
-    throw new Error(
-      `The following allowed licenses are not valid SPDX license identifiers: ${invalidLicenses.join(', ')}`
-    )
-  }
+  const allowedLicenses = parseLicenses(allowedLicensesParam)
   log('Parsed allowed licenses: %O', allowedLicenses)
 
-  const exclude = Array.isArray(excludeParam)
-    ? excludeParam
-    : parseListValue(excludeParam)
+  const allowedLicensesDev = parseLicenses(allowedLicensesDevParam)
+  log('Parsed allowed licenses (dev): %O', allowedLicensesDev)
 
-  const invalidExcludes = exclude.filter(
-    (excl) => excl.includes('*') && excl.indexOf('*') !== excl.length - 1
-  )
-  if (invalidExcludes.length > 0) {
-    throw new Error(
-      `The following exclude are invalid, wildcards are only supported at the end of the string: ${invalidExcludes.join(
-        ', '
-      )}`
-    )
-  }
+  const exclude = parseExclude(excludeParam)
   log('Parsed exclude: %O', exclude)
+
+  const excludeDev = parseExclude(excludeDevParam)
+  log('Parsed exclude (dev): %O', excludeDev)
 
   const clarifications = parseClarifications(clarificationsParam)
   log('Parsed clarifications: %O', clarifications)
@@ -240,26 +289,33 @@ export default async function checkLicenses({
   await validateNodeModulesExistence(start)
   log('node_modules directory exists in %s', start)
 
-  const packages = (await licenseChecker({
+  const options = {
     start,
     relativeModulePath: true,
     relativeLicensePath: true,
     customFormat,
     clarificationsFile,
-    excludePackages: exclude.filter((pkg) => !pkg.endsWith('*')),
-    excludePackagesStartingWith: exclude
-      .filter((pkg) => pkg.endsWith('*'))
-      .map((pkg) => pkg.slice(0, -1)),
-  } satisfies LicenceCheckerRealArgs)) satisfies LicenceCheckerRealResult
+  } satisfies Partial<LicenceCheckerArgs> satisfies LicenceCheckerRealArgs
 
-  const result: Array<PackageInfo> = Object.values<PackageInfo>(packages).map(
-    (info) => ({
-      ...info,
-      ok: checkLicense(allowedLicenses, info),
-    })
-  )
+  const resultsProd = await collectResults({
+    ...options,
+    production: true,
+    development: false,
+    allowedLicenses,
+    exclude,
+  })
+  log('License check result (production): %O', resultsProd)
 
-  log('License check result: %O', result)
+  const resultsDev = await collectResults({
+    ...options,
+    production: false,
+    development: true,
+    allowedLicenses: [...allowedLicenses, ...allowedLicensesDev],
+    exclude: [...exclude, ...excludeDev],
+  })
+  log('License check result (development): %O', resultsDev)
 
-  return result
+  const results = [...resultsDev, ...resultsProd]
+
+  return results
 }

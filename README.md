@@ -33,6 +33,9 @@ following notable changes:
 
 - Check if `node_modules` exists
 
+- Additional allowed licenses and excluded packages for dev
+  dependencies.
+
 ## Usage
 
 ### Command line
@@ -72,8 +75,12 @@ npx dotenv-cli -e .env.test -- sh -c '\
   npx . \
     --allow-licenses="$ALLOW_LICENSES_GLOBAL" \
     --allow-licenses="$ALLOW_LICENSES" \
+    --allow-licenses-dev="$ALLOW_LICENSES_DEV_GLOBAL" \
+    --allow-licenses-dev="$ALLOW_LICENSES_DEV" \
     --exclude-packages="$EXCLUDE_PACKAGES_GLOBAL" \
     --exclude-packages="$EXCLUDE_PACKAGES" \
+    --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV_GLOBAL" \
+    --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV" \
     --clarifications="$CLARIFICATIONS_GLOBAL" \
     --clarifications="$CLARIFICATIONS" \
     PATH_TO_YOUR_PROJECT \

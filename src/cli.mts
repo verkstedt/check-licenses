@@ -42,6 +42,14 @@ const cliOptions = Object.freeze({
     description:
       "Newline-separated list of package names to exclude from the check. Use '*' at the end of the name to match by prefix. Lines starting with '#' are treated as comments and ignored.",
   },
+  ['exclude-packages-dev']: {
+    short: 'X',
+    type: 'string',
+    multiple: true,
+    default: [],
+    description:
+      'Same as --exclude-packages, but applied to dev dependencies (in addition to --exclude-packages).',
+  },
   ['allow-licenses']: {
     short: 'l',
     type: 'string',
@@ -49,6 +57,14 @@ const cliOptions = Object.freeze({
     default: [],
     description:
       "Newline-separated list of allowed SPDX license identifiers <https://spdx.org/licenses/>. You can use '+' after a version to also allow future versions. Lines starting with '#' are treated as comments and ignored.",
+  },
+  ['allow-licenses-dev']: {
+    short: 'L',
+    type: 'string',
+    multiple: true,
+    default: [],
+    description:
+      'Same as --allow-licenses, but applied to dev dependencies (in addition to --allow-licenses).',
   },
   ['clarifications']: {
     short: 'c',
@@ -123,7 +139,9 @@ interface OurParseArgsConfig extends ParseArgsConfig {
 function parseCliArgs(): {
   start: string
   exclude: string
+  excludeDev: string
   allowedLicenses: string
+  allowedLicensesDev: string
   clarifications: Clarifications
 } {
   let parseArgsResult
@@ -181,9 +199,17 @@ function parseCliArgs(): {
   log(`Excludes: %s`, excludeArray)
   const exclude = excludeArray.join('\n')
 
+  const excludeDevArray = values['exclude-packages-dev'] as Array<string>
+  log(`Excludes (dev): %s`, excludeDevArray)
+  const excludeDev = excludeDevArray.join('\n')
+
   const allowLicensesArray = values['allow-licenses'] as Array<string>
   log(`Allow licenses: %s`, allowLicensesArray)
   const allowedLicenses = allowLicensesArray.join('\n')
+
+  const allowLicensesDevArray = values['allow-licenses-dev'] as Array<string>
+  log(`Allow licenses (dev): %s`, allowLicensesDevArray)
+  const allowedLicensesDev = allowLicensesDevArray.join('\n')
 
   const clarificationsArray = values.clarifications as Array<string>
   log(`Clarifications: %s`, clarificationsArray)
@@ -199,19 +225,30 @@ function parseCliArgs(): {
   return {
     start,
     exclude,
+    excludeDev,
     allowedLicenses,
+    allowedLicensesDev,
     clarifications,
   }
 }
 
 async function main() {
-  const { start, exclude, allowedLicenses, clarifications } = parseCliArgs()
+  const {
+    start,
+    exclude,
+    excludeDev,
+    allowedLicenses,
+    allowedLicensesDev,
+    clarifications,
+  } = parseCliArgs()
 
   const result = await checkLicenses({
     start,
     exclude,
+    excludeDev,
     clarifications,
     allowedLicenses,
+    allowedLicensesDev,
     log,
   })
 
