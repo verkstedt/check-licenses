@@ -40,7 +40,7 @@ const cliOptions = Object.freeze({
     multiple: true,
     default: [],
     description:
-      "Newline-separated list of package names or patterns to exclude from the check. Use '*' at the end of the name to match by prefix. Lines starting with '#' are treated as comments and ignored.",
+      "Newline-separated list of package names to exclude from the check. Use '*' at the end of the name to match by prefix. Lines starting with '#' are treated as comments and ignored.",
   },
   ['allowed-licenses']: {
     short: 'l',
