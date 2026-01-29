@@ -47,12 +47,12 @@ npx @verkstedt/check-licenses --help
 ### Programmatic
 
 ```mjs
-import { checkLicenses } from '@verkstedt/check-licenses'
+import checkLicenses from '@verkstedt/check-licenses'
 
-const results = checkLicenses({
+const results = await checkLicenses({
   start: 'PATH_TO_YOUR_PROJECT',
   allowedLicenses: ['ISC', 'MIT', 'Artistic-1.0+'],
-  excludedPackages: ['some-package', '@verkstedt/*'],
+  excluded: ['some-package', '@verkstedt/*'],
   clarifications: {
     'some-package': { licenses: 'ISC' },
   },
