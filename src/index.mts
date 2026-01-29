@@ -140,7 +140,8 @@ interface CheckLicensesOptions {
 function parseListValue(value: string): Array<string> {
   return value
     .split('\n')
-    .filter((line) => !line.trimStart().startsWith('#') && line.trim() !== '')
+    .map((line) => line.trim())
+    .filter((line) => line !== '' && !line.startsWith('#'))
 }
 
 function parseJsonValue(value: string) {
