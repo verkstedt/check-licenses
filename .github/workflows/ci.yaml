@@ -23,7 +23,7 @@ on:
       - synchronize
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:
@@ -57,6 +57,6 @@ jobs:
       - ci
       # If you add any new jobs, also add them here:
       #- lint-something-else
-    if: failure() && github.head_ref == 'main'
+    if: failure() && github.event_name == 'push' && github.ref == 'refs/heads/main'
     uses: verkstedt/actions/.github/workflows/notify-main-branch-failure.yaml@v1
     secrets: inherit
