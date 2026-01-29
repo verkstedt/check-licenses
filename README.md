@@ -81,7 +81,6 @@ npx dotenv-cli -e .env.test -- sh -c '\
     --exclude-packages="$EXCLUDE_PACKAGES" \
     --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV_GLOBAL" \
     --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV" \
-    --clarifications="$CLARIFICATIONS_GLOBAL" \
     --clarifications="$CLARIFICATIONS" \
     PATH_TO_YOUR_PROJECT \
   '
