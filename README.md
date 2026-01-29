@@ -29,7 +29,7 @@ following notable changes:
 - Read clarifications from an argument, instead of a file.
 
 - Combine `excludePackages` and `onlyAllowPackages` into a single
-  `excludes` that allows `*` wildcard at the end of the names.
+  `exclude` that allows `*` wildcard at the end of the names.
 
 - Check if `node_modules` exists
 
