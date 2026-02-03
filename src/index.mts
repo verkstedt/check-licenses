@@ -360,7 +360,8 @@ export default async function checkLicenses({
   })
   log('License check result (development): %O', resultsDev)
 
-  const results = [...resultsDev, ...resultsProd]
-
-  return results
+  const results = new Map(
+    [...resultsDev, ...resultsProd].map((info) => [info.path, info])
+  )
+  return Array.from(results.values())
 }
