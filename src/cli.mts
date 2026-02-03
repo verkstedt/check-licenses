@@ -54,7 +54,6 @@ const cliOptions = Object.freeze({
     short: 'l',
     type: 'string',
     multiple: true,
-    default: [],
     description:
       "Newline-separated list of allowed SPDX license identifiers <https://spdx.org/licenses/>. You can use '+' after a version to also allow future versions. Lines starting with '#' are treated as comments and ignored.",
   },
@@ -205,6 +204,13 @@ function parseCliArgs(): {
 
   const allowLicensesArray = values['allow-licenses'] as Array<string>
   log(`Allow licenses: %s`, allowLicensesArray)
+  if (!allowLicensesArray?.length) {
+    process.stderr.write(
+      `${ansi.red}ERROR: Missing required --allow-licenses${ansi.reset}\n\n`
+    )
+    printHelp()
+    process.exit(64) // EX_USAGE
+  }
   const allowedLicenses = allowLicensesArray.join('\n')
 
   const allowLicensesDevArray = values['allow-licenses-dev'] as Array<string>
