@@ -174,16 +174,38 @@ function isClarifications(value: unknown): value is Clarifications {
 
 function parseLicenses(value: string | Array<string>): Array<string> {
   const licenses = Array.isArray(value) ? value : parseListValue(value)
+
   const invalidLicenses = licenses.filter((licenseSpec) => {
     const licenseId = licenseSpec.endsWith('+')
       ? licenseSpec.slice(0, -1)
       : licenseSpec
     return !spdxLicenseIds.includes(licenseId)
   })
+
   if (invalidLicenses.length > 0) {
-    throw new Error(
-      `The following allowed licenses are not valid SPDX license identifiers: ${invalidLicenses.join(', ')}`
+    const invalidLicensesQuoted = invalidLicenses.map(
+      (license) => `“${license}”`
     )
+    const errorMessage = [
+      `The following allowed licenses are not valid SPDX license identifiers: ${invalidLicensesQuoted.join(', ')}.`,
+    ]
+
+    const hasUnlicensed = invalidLicenses.includes('UNLICENSED')
+    if (hasUnlicensed) {
+      errorMessage.push(
+        `Note that 'UNLICENSED' is not a valid SPDX license identifier — exclude proprietary packages instead.`
+      )
+    }
+    const hasSeparators = invalidLicenses.some(
+      (license) => license.includes(',') || license.includes(';')
+    )
+    if (hasSeparators) {
+      errorMessage.push(
+        `Note that allowed licenses is a newline–separated list and there are some ',' or ';' characters in there.`
+      )
+    }
+
+    throw new Error(errorMessage.join(' '))
   }
   return licenses
 }
