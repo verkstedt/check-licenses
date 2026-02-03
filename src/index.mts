@@ -9,6 +9,11 @@ import { initFast } from 'license-checker-evergreen'
 import spdxLicenseIds from 'spdx-license-ids' with { type: 'json' }
 import satisfies from 'spdx-satisfies'
 
+interface LicenseCheckResult {
+  valid: boolean
+  allowed: boolean
+}
+
 const customFormat = Object.freeze({
   licenses: '' as string,
   private: false as boolean,
@@ -19,7 +24,8 @@ const customFormat = Object.freeze({
   licenseFile: 'none' as string,
   licenseText: 'none' as string,
   // Init with undefined, will be filled in later
-  ok: undefined as boolean | undefined,
+  valid: undefined as boolean | undefined,
+  allowed: undefined as boolean | undefined,
 })
 
 type PackageInfo = {
@@ -86,22 +92,29 @@ async function createTempClarificationsFile(
 
 function checkLicense(
   allowedSpdxLicenses: Array<string>,
-  { name, version, licenses }: PackageInfo
-): boolean {
+  licenses: string
+): LicenseCheckResult {
   // license-checker-evergreen adds * to the end of licenses, if it
   // didn’t read it from package.json
   const license = licenses.endsWith('*') ? licenses.slice(0, -1) : licenses
 
   if (allowedSpdxLicenses.includes(license)) {
-    return true
+    return {
+      valid: true,
+      allowed: true,
+    }
   } else {
     try {
-      return satisfies(license, allowedSpdxLicenses)
+      const allowed = satisfies(license, allowedSpdxLicenses)
+      return {
+        valid: true,
+        allowed,
+      }
     } catch (cause) {
-      throw new Error(
-        `Failed to check license '${licenses}' for package ${name}@${version}. You might need to add it to clarifications.`,
-        { cause }
-      )
+      return {
+        valid: false,
+        allowed: false,
+      }
     }
   }
 }
@@ -279,10 +292,12 @@ async function collectResults({
 
   const results: Array<PackageInfo> = Object.values<PackageInfo>(
     packagesProd
-  ).map((info) => ({
-    ...info,
-    ok: checkLicense(allowedLicenses, info),
-  }))
+  ).map((info) => {
+    return {
+      ...info,
+      ...checkLicense(allowedLicenses, info.licenses),
+    }
+  })
 
   return results
 }

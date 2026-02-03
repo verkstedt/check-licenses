@@ -23,6 +23,9 @@ following notable changes:
 
 - We list all offending packages, instead of just the first one.
 
+- We also collect data about invalid licenses, not just non–allowed
+  ones.
+
 - Use newline as delimiter between items of arguments and allow comment
   lines.
 
@@ -59,8 +62,13 @@ const results = await checkLicenses({
 })
 
 console.log(
-  'Violations:',
-  results.filter((result) => !result.ok)
+  'Dependencies with invalid license metadata:',
+  results.filter((result) => !result.valid)
+)
+
+console.log(
+  'Dependencies with non–allowed licenses:',
+  results.filter((result) => result.valid && !result.allowed)
 )
 ```
 

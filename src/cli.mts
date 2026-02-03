@@ -258,7 +258,7 @@ async function main() {
     log,
   })
 
-  const violations = result.filter((pkg) => pkg.ok !== true)
+  const violations = result.filter((pkg) => pkg.allowed !== true)
 
   if (violations.length === 0) {
     log('No license violations found.')
@@ -267,12 +267,22 @@ async function main() {
     process.stderr.write(
       [
         `${ansi.red}Found ${violations.length} license violations:${ansi.reset}`,
-        ...violations.map(
-          ({ name, version, licenses }) => `  - ${name}@${version}: ${licenses}`
+        ...violations.map(({ name, version, licenses, valid }) =>
+          [
+            `  - ${name}@${version}: `,
+            licenses,
+            valid ? '' : ` ${ansi.red}(invalid license metadata)${ansi.reset}`,
+          ].join('')
         ),
         '',
       ].join('\n')
     )
+    const hasInvalid = violations.some((pkg) => pkg.valid !== true)
+    if (hasInvalid) {
+      process.stderr.write(
+        `${ansi.dim}${ansi.red}Note: Some packages have invalid license metadata. You might need to add them to clarifications.${ansi.reset}\n`
+      )
+    }
     process.exit(1) // EX_FAILURE
   }
 }
