@@ -1,0 +1,39 @@
+{
+  "name": "@verkstedt/check-licenses",
+  "description": "Check licenses of your project dependencies.",
+  "version": "1.0.0",
+  "license": "ISC",
+  "type": "module",
+  "main": "dist/index.mjs",
+  "types": "dist/index.d.mts",
+  "bin": "dist/cli.mjs",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "@saji/git-hooks": "^1.2.2",
+    "@types/node": "^25.0.8",
+    "@types/spdx-satisfies": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "@verkstedt/eslint-config-verkstedt": "^10.0.2",
+    "eslint": "^8.57.1",
+    "eslint-plugin-prettier": "^5.5.5",
+    "prettier": "^3.8.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "license-checker-evergreen": "^6.2.0",
+    "spdx-license-ids": "^3.0.22",
+    "spdx-satisfies": "^6.0.0",
+    "word-wrap": "^1.2.5"
+  },
+  "config": {
+    "setup-repo-version": "1.1.6+git.2784611",
+    "setup-repo-is-frontend": "No"
+  }
+}
