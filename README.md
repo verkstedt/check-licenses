@@ -75,21 +75,24 @@ console.log(
 ## Testing
 
 This script is mainly indented to be used in CI pipelines. To test
-things locally, you can save vars from CI in a `.env.test` file and run:
+things locally, get current values from your CI environment and store
+then in a `.env.local` file (see [`.env.example`](./.env.example) for an
+example how it can lok like), then use `dotenv-cli` to pass them as
+command line arguments:
 
 ```sh
 cd PATH_TO_CHECK_LICENSES_REPO
 npx dotenv-cli -e .env.test -- sh -c '\
   npx . \
-    --allow-licenses="$ALLOW_LICENSES_GLOBAL" \
-    --allow-licenses="$ALLOW_LICENSES" \
-    --allow-licenses-dev="$ALLOW_LICENSES_DEV_GLOBAL" \
-    --allow-licenses-dev="$ALLOW_LICENSES_DEV" \
-    --exclude-packages="$EXCLUDE_PACKAGES_GLOBAL" \
-    --exclude-packages="$EXCLUDE_PACKAGES" \
-    --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV_GLOBAL" \
-    --exclude-packages-dev="$EXCLUDE_PACKAGES_DEV" \
-    --clarifications="$CLARIFICATIONS" \
+    --allow-licenses="$LICENSE_CHECK_ALLOW_LICENSES_GLOBAL" \
+    --allow-licenses="$LICENSE_CHECK_ALLOW_LICENSES" \
+    --allow-licenses-dev="$LICENSE_CHECK_ALLOW_LICENSES_DEV_GLOBAL" \
+    --allow-licenses-dev="$LICENSE_CHECK_ALLOW_LICENSES_DEV" \
+    --exclude-packages="$LICENSE_CHECK_EXCLUDE_PACKAGES_GLOBAL" \
+    --exclude-packages="$LICENSE_CHECK_EXCLUDE_PACKAGES" \
+    --exclude-packages-dev="$LICENSE_CHECK_EXCLUDE_PACKAGES_DEV_GLOBAL" \
+    --exclude-packages-dev="$LICENSE_CHECK_EXCLUDE_PACKAGES_DEV" \
+    --clarifications="$LICENSE_CHECK_CLARIFICATIONS" \
     PATH_TO_YOUR_PROJECT \
   '
 ```
