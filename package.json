@@ -1,7 +1,7 @@
 {
   "name": "@verkstedt/check-licenses",
   "description": "Check licenses of your project dependencies.",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "ISC",
   "type": "module",
   "main": "dist/index.mjs",
