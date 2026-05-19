@@ -243,7 +243,7 @@ export function parseClarifications(
   value: string | Clarifications
 ): Clarifications {
   const parsedValue =
-    typeof value !== 'string' ? value : parseJsonValue(value) || {}
+    (typeof value !== 'string' || !value ? value : parseJsonValue(value)) || {}
   if (!isClarifications(parsedValue)) {
     throw new Error(
       `Clarifications must be a JSON object mapping package names to clarification objects with 'licenses' (note it’s plural) and optional 'licenseFile' properties.`
