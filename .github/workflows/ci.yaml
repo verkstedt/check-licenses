@@ -10,6 +10,11 @@ name: 'CI'
 #
 # IF YOU MODIFY IT IN ANY WAY, DESCRIBE IT IN THE COMMENT HERE
 # to make updating in the future easier.
+#
+# MODIFICATION: `ci` temporarily uses the workflow from the
+# fix/check-licenses-in-own-repo branch instead of @v1, to test
+# https://github.com/verkstedt/actions/pull/87 — revert to @v1
+# before merging or once that PR is merged.
 
 on:
   push:
@@ -29,7 +34,7 @@ concurrency:
 jobs:
   ci:
     name: 'CI'
-    uses: verkstedt/actions/.github/workflows/ci.yaml@v1
+    uses: verkstedt/actions/.github/workflows/ci.yaml@fix/check-licenses-in-own-repo
     secrets: inherit
     with:
       working-directory: .
