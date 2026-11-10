@@ -5,18 +5,19 @@ import {
   parseArgs,
   type ParseArgsConfig,
   type ParseArgsOptionDescriptor,
-} from 'node:util'
+} from 'node:util';
 
-import wordWrap from 'word-wrap'
+import wordWrap from 'word-wrap';
 
-import checkLicenses, { Clarifications, parseClarifications } from './index.mjs'
+import type { Clarifications } from './index.mjs';
+import checkLicenses, { parseClarifications } from './index.mjs';
 
-const PKG_NAME = '@verkstedt/check-licenses'
+const PKG_NAME = '@verkstedt/check-licenses';
 
-const log = debug(PKG_NAME)
+const log = debug(PKG_NAME);
 
 const supportsColor =
-  process.stdout.isTTY && process.stderr.isTTY && process.env.TERM !== 'dumb'
+  process.stdout.isTTY && process.stderr.isTTY && process.env.TERM !== 'dumb';
 
 const ansi =
   process.env.FORCE_COLOR || (supportsColor && !('NO_COLOR' in process.env))
@@ -31,7 +32,7 @@ const ansi =
         bold: '',
         red: '',
         reset: '',
-      }
+      };
 
 const cliOptions = Object.freeze({
   ['exclude-packages']: {
@@ -82,15 +83,15 @@ const cliOptions = Object.freeze({
 } as const) satisfies Record<
   string,
   ParseArgsOptionDescriptor & { description: string }
->
+>;
 
 function wrapText(prefix: string, text: string): string {
-  const columns = process.stdout.columns || 80
+  const columns = process.stdout.columns || 80;
 
   return wordWrap(text, { width: columns - prefix.length - 2 }).replace(
     /^/gm,
-    prefix
-  )
+    prefix,
+  );
 }
 
 function printHelp(): void {
@@ -115,35 +116,33 @@ function printHelp(): void {
               '\n',
               ansi.dim,
               option.type,
-              'multiple' in option && option.multiple
-                ? ', can be specified multiple times'
-                : '',
+              'multiple' in option ? ', can be specified multiple times' : '',
               'default' in option
                 ? `, default: ${JSON.stringify(option.default)}`
                 : '',
               ansi.reset,
-            ].join('')
+            ].join(''),
           ),
-        ].join('\n')
+        ].join('\n'),
       ),
       '',
-    ].join('\n')
-  )
+    ].join('\n'),
+  );
 }
 
 interface OurParseArgsConfig extends ParseArgsConfig {
-  options: typeof cliOptions
+  options: typeof cliOptions;
 }
 
 function parseCliArgs(): {
-  start: string
-  exclude: string
-  excludeDev: string
-  allowedLicenses: string
-  allowedLicensesDev: string
-  clarifications: Clarifications
+  start: string;
+  exclude: string;
+  excludeDev: string;
+  allowedLicenses: string;
+  allowedLicensesDev: string;
+  clarifications: Clarifications;
 } {
-  let parseArgsResult
+  let parseArgsResult;
   try {
     parseArgsResult = parseArgs<OurParseArgsConfig>({
       args: process.argv.slice(2),
@@ -151,7 +150,7 @@ function parseCliArgs(): {
       strict: true,
       allowPositionals: true,
       allowNegative: true,
-    })
+    });
   } catch (error) {
     if (
       error instanceof Error &&
@@ -163,70 +162,71 @@ function parseCliArgs(): {
       ].includes(error.code)
     ) {
       process.stderr.write(
-        `${ansi.red}ERROR: ${error.message}${ansi.reset}\n\n`
-      )
-      printHelp()
-      process.exit(64) // EX_USAGE
+        `${ansi.red}ERROR: ${error.message}${ansi.reset}\n\n`,
+      );
+      printHelp();
+      process.exit(64); // EX_USAGE
     } else {
-      throw error
+      throw error;
     }
   }
 
-  const { values, positionals } = parseArgsResult!
+  const { values, positionals } = parseArgsResult;
 
   if (values.help) {
-    printHelp()
-    process.exit(0) // EX_OK
+    printHelp();
+    process.exit(0); // EX_OK
   }
 
   if (positionals.length !== 1) {
     process.stderr.write(
-      `${ansi.red}ERROR: Missing required PATH argument${ansi.reset}\n\n`
-    )
-    printHelp()
-    process.exit(64) // EX_USAGE
+      `${ansi.red}ERROR: Missing required PATH argument${ansi.reset}\n\n`,
+    );
+    printHelp();
+    process.exit(64); // EX_USAGE
   }
-  const start = positionals[0]
-  log(`Starting path: %s`, start)
+  const start = positionals[0];
+  log(`Starting path: %s`, start);
 
   // parseArgs types currently doesn’t recognise `type` and types
   // everything as `string | boolean` (it only recognises `multiple`, so
   // it doesn’t type as `string | boolean | string[] | boolean[]`).
   // So we need to cast values as strings.
 
-  const excludeArray = values['exclude-packages'] as Array<string>
-  log(`Excludes: %s`, excludeArray)
-  const exclude = excludeArray.join('\n')
+  const excludeArray = values['exclude-packages'] as Array<string>;
+  log(`Excludes: %s`, excludeArray);
+  const exclude = excludeArray.join('\n');
 
-  const excludeDevArray = values['exclude-packages-dev'] as Array<string>
-  log(`Excludes (dev): %s`, excludeDevArray)
-  const excludeDev = excludeDevArray.join('\n')
+  const excludeDevArray = values['exclude-packages-dev'] as Array<string>;
+  log(`Excludes (dev): %s`, excludeDevArray);
+  const excludeDev = excludeDevArray.join('\n');
 
-  const allowLicensesArray = values['allow-licenses'] as Array<string>
-  log(`Allow licenses: %s`, allowLicensesArray)
+  const allowLicensesArray = values['allow-licenses'] as
+    Array<string> | undefined;
+  log(`Allow licenses: %s`, allowLicensesArray);
   if (!allowLicensesArray?.length) {
     process.stderr.write(
-      `${ansi.red}ERROR: Missing required --allow-licenses${ansi.reset}\n\n`
-    )
-    printHelp()
-    process.exit(64) // EX_USAGE
+      `${ansi.red}ERROR: Missing required --allow-licenses${ansi.reset}\n\n`,
+    );
+    printHelp();
+    process.exit(64); // EX_USAGE
   }
-  const allowedLicenses = allowLicensesArray.join('\n')
+  const allowedLicenses = allowLicensesArray.join('\n');
 
-  const allowLicensesDevArray = values['allow-licenses-dev'] as Array<string>
-  log(`Allow licenses (dev): %s`, allowLicensesDevArray)
-  const allowedLicensesDev = allowLicensesDevArray.join('\n')
+  const allowLicensesDevArray = values['allow-licenses-dev'] as Array<string>;
+  log(`Allow licenses (dev): %s`, allowLicensesDevArray);
+  const allowedLicensesDev = allowLicensesDevArray.join('\n');
 
-  const clarificationsArray = values.clarifications as Array<string>
-  log(`Clarifications: %s`, clarificationsArray)
+  const clarificationsArray = values.clarifications as Array<string>;
+  log(`Clarifications: %s`, clarificationsArray);
   const clarifications = clarificationsArray.reduce((carry, itemString) => {
-    const item = parseClarifications(itemString)
+    const item = parseClarifications(itemString);
     return {
       ...carry,
       ...item,
-    }
-  }, {})
-  log(`Clarifications (merged): %s`, clarifications)
+    };
+  }, {});
+  log(`Clarifications (merged): %s`, clarifications);
 
   return {
     start,
@@ -235,7 +235,7 @@ function parseCliArgs(): {
     allowedLicenses,
     allowedLicensesDev,
     clarifications,
-  }
+  };
 }
 
 async function main() {
@@ -246,7 +246,7 @@ async function main() {
     allowedLicenses,
     allowedLicensesDev,
     clarifications,
-  } = parseCliArgs()
+  } = parseCliArgs();
 
   const result = await checkLicenses({
     start,
@@ -256,14 +256,14 @@ async function main() {
     allowedLicenses,
     allowedLicensesDev,
     log,
-  })
+  });
 
-  const violations = result.filter((pkg) => pkg.allowed !== true)
+  const violations = result.filter((pkg) => pkg.allowed !== true);
 
   if (violations.length === 0) {
-    log('No license violations found.')
+    log('No license violations found.');
   } else {
-    log('License violations found: %O', violations)
+    log('License violations found: %O', violations);
     process.stderr.write(
       [
         `${ansi.red}Found ${violations.length} license violations:${ansi.reset}`,
@@ -272,19 +272,19 @@ async function main() {
             `  - ${name}@${version}: `,
             licenses,
             valid ? '' : ` ${ansi.red}(invalid license metadata)${ansi.reset}`,
-          ].join('')
+          ].join(''),
         ),
         '',
-      ].join('\n')
-    )
-    const hasInvalid = violations.some((pkg) => pkg.valid !== true)
+      ].join('\n'),
+    );
+    const hasInvalid = violations.some((pkg) => pkg.valid !== true);
     if (hasInvalid) {
       process.stderr.write(
-        `${ansi.dim}${ansi.red}Note: Some packages have invalid license metadata. You might need to add them to clarifications.${ansi.reset}\n`
-      )
+        `${ansi.dim}${ansi.red}Note: Some packages have invalid license metadata. You might need to add them to clarifications.${ansi.reset}\n`,
+      );
     }
-    process.exit(1) // EX_FAILURE
+    process.exit(1); // EX_FAILURE
   }
 }
 
-await main()
+await main();
