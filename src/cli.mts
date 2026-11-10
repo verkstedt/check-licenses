@@ -116,9 +116,7 @@ function printHelp(): void {
               '\n',
               ansi.dim,
               option.type,
-              'multiple' in option && option.multiple
-                ? ', can be specified multiple times'
-                : '',
+              'multiple' in option ? ', can be specified multiple times' : '',
               'default' in option
                 ? `, default: ${JSON.stringify(option.default)}`
                 : '',
@@ -203,7 +201,8 @@ function parseCliArgs(): {
   log(`Excludes (dev): %s`, excludeDevArray);
   const excludeDev = excludeDevArray.join('\n');
 
-  const allowLicensesArray = values['allow-licenses'] as Array<string>;
+  const allowLicensesArray = values['allow-licenses'] as
+    Array<string> | undefined;
   log(`Allow licenses: %s`, allowLicensesArray);
   if (!allowLicensesArray?.length) {
     process.stderr.write(
