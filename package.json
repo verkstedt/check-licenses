@@ -15,7 +15,10 @@
   },
   "scripts": {
     "prepare": "npm run build",
-    "build": "tsc"
+    "build": "tsc",
+    "lint": "npm-run-all --print-label 'lint:*'",
+    "lint:js": "eslint .",
+    "lint:ts": "tsc --noEmit"
   },
   "devDependencies": {
     "@saji/git-hooks": "^1.2.2",
@@ -25,6 +28,7 @@
     "eslint": "^10.14.0",
     "eslint-import-resolver-typescript": "^4.4.5",
     "jiti": "^2.7.0",
+    "npm-run-all2": "^9.0.4",
     "prettier": "^3.9.10",
     "typescript": "^6.0.2",
     "typescript-eslint": "^8.72.2"
