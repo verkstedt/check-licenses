@@ -50,7 +50,7 @@ npx @verkstedt/check-licenses --help
 ### Programmatic
 
 ```mjs
-import checkLicenses from '@verkstedt/check-licenses'
+import checkLicenses from '@verkstedt/check-licenses';
 
 const results = await checkLicenses({
   start: 'PATH_TO_YOUR_PROJECT',
@@ -59,17 +59,17 @@ const results = await checkLicenses({
   clarifications: {
     'some-package': { licenses: 'ISC' },
   },
-})
+});
 
 console.log(
   'Dependencies with invalid license metadata:',
-  results.filter((result) => !result.valid)
-)
+  results.filter((result) => !result.valid),
+);
 
 console.log(
   'Dependencies with non–allowed licenses:',
-  results.filter((result) => result.valid && !result.allowed)
-)
+  results.filter((result) => result.valid && !result.allowed),
+);
 ```
 
 ## Testing
