@@ -1,0 +1,42 @@
+###
+# Generated
+
+# Change Log
+/CHANGELOG.md
+
+# Dependency lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Minimised files
+*.min.js
+
+# Type definitions
+next-env.d.ts
+
+# BMAD method
+/_bmad/
+/_bmad-output/
+/.agents/skills/bmad*/
+/.claude/skills/bmad*/
+/.claude/commands/bmad-*.md
+/.cursor/commands/bmad-*.md
+/.codex/prompts/bmad-*.md
+/.github/agents/bmad-*.md
+
+# Git merge conflict files
+*_BACKUP_*.*
+*_BASE_*.*
+*_LOCAL_*.*
+*_REMOTE_*.*
+
+###
+# Assets
+*.svg
+
+###
+# Local
+
+/.worktrees/
+/.claude/.worktrees/

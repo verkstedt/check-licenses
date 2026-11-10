@@ -1,4 +1,5 @@
 {
+  "extends": "@verkstedt/lint/tsconfig",
   "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "module": "nodenext",
@@ -13,5 +14,6 @@
     "sourceMap": true,
     "declaration": true,
     "declarationMap": true
-  }
+  },
+  "include": ["src"]
 }
