@@ -1,0 +1,29 @@
+name: 'Dependabot auto-merge'
+
+# Automatically merge Dependabot PRs that update just the patch version.
+#
+# See https://github.com/verkstedt/actions#dependabot-auto-merge
+#
+# This file has been created from
+# https://github.com/verkstedt/.github/blob/main/workflow-templates/dependabot-auto-merge.yaml
+#
+# IF YOU MODIFY IT IN ANY WAY, DESCRIBE IT IN THE COMMENT HERE
+# to make updating in the future easier.
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+
+jobs:
+  dependabot-auto-merge:
+    name: 'Dependabot auto-merge'
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: verkstedt/actions/.github/workflows/dependabot-auto-merge.yaml@v1
+    with:
+      gh-auth-app-client-id: ${{ vars.DEPENDABOT_AUTO_MERGE_CLIENT_ID }}
+    secrets:
+      gh-auth-app-private-key: ${{ secrets.DEPENDABOT_AUTO_MERGE_APP_PRIVATE_KEY }}
